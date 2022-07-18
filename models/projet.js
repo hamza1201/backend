@@ -18,5 +18,11 @@ const projetSchema = mongoose.Schema(
   },
   { timestamp: true }
 );
+mongoose.set("toJSON", {
+  virtuals: true,
+  transform: (doc, converted) => {
+    delete converted._id;
+  },
+});
 
 module.exports = mongoose.model("Projet", projetSchema);

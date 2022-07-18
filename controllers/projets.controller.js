@@ -6,16 +6,17 @@ const mongoose = require("mongoose");
 const User = require("../models/user");
 
 const createProjet = async (req, res, next) => {
-  const { title, content, creator } = req.body;
+  const { title, content } = req.body;
+  console.log(req.userData.userId);
   const createdProjet = new Projet({
     title,
     content,
-    creator,
+    creator: req.userData.userId,
   });
 
   let user;
   try {
-    user = await User.findById(creator);
+    user = await User.findById(req.userData.userId);
   } catch (err) {
     const error = new HttpError("Creating projet failed,please try again", 500);
     return next(error);
@@ -27,31 +28,35 @@ const createProjet = async (req, res, next) => {
   }
   console.log(user);
 
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    await createdProjet.save({ session: sess });
-    user.projets.push(createdProjet);
-    await user.save({ session: sess });
-    await sess.commitTransaction();
-  } catch (err) {
-    const error = new HttpError("Creating projet failed,please try again", 500);
-    return next(error);
-  }
+  await createdProjet.save();
 
   res.status(201).json({ projet: createdProjet });
 };
 
-const updateProjet = (req, res, next) => {
-  Projet.updateOne(
+const updateProjet = async (req, res, next) => {
+  let project;
+  try {
+    project = await Projet.findById(req.params.id);
+  } catch (err) {
+    const error = new HttpError("Projet not found", 500);
+    return next(error);
+  }
+
+  if (project.creator.toString() !== req.userData.userId) {
+    console.log(req.userData.userId);
+    const error = new HttpError(
+      "You are not allowed to edit this project.",
+      401
+    );
+    return next(error);
+  }
+  await project.updateOne(
     {
       _id: req.params.id,
     },
     req.body
-  ).then((result) => {
-    console.log(result);
-    res.status(200).json({ message: "updated succeful" });
-  });
+  );
+  res.status(200).json({ message: "updated succeful" });
 };
 
 getAllProjets = async (req, res, next) => {
@@ -98,7 +103,7 @@ getProjetsByUserId = async (req, res, next) => {
   });
 };
 
-deleteProjet = async (req, res, next) => {
+/* deleteProjet = async (req, res, next) => {
   const projetId = req.params.id;
   let projet;
 
@@ -133,11 +138,13 @@ deleteProjet = async (req, res, next) => {
   }
 
   res.status(200).json({ message: "Projet deleted!" });
-};
+}; */
 
-exports.getAllProjets = getAllProjets;
-exports.getProjetById = getProjetById;
-exports.createProjet = createProjet;
-exports.updateProjet = updateProjet;
-exports.deleteProjet = deleteProjet;
-exports.getProjetsByUserId = getProjetsByUserId;
+module.exports = {
+  getAllProjets,
+  getProjetById,
+  createProjet,
+  updateProjet,
+  //deleteProjet,
+  getProjetsByUserId,
+};

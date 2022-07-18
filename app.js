@@ -4,17 +4,10 @@ const bodyParser = require("body-parser");
 
 const mongoose = require("mongoose");
 
-const projetsRoutes = require("./routes/projets-routes");
-const usersRoutes = require("./routes/users-routes");
+const projetsRoutes = require("./routes/projets");
+const usersRoutes = require("./routes/users");
 
 const app = express();
-
-mongoose.set("toJSON", {
-  virtuals: true,
-  transform: (doc, converted) => {
-    delete converted._id;
-  },
-});
 
 mongoose
   .connect(
@@ -34,7 +27,7 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Origin,X-Requested-With,Content-Type,Accept"
+    "Origin,X-Requested-With,Content-Type,Accept,Authorization"
   );
   res.setHeader(
     "Access-Control-Allow-Methods",
