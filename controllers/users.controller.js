@@ -22,6 +22,7 @@ const getUsers = async (req, res, next) => {
 const signup = async (req, res, next) => {
   const { email, password } = req.body;
   let existingUser = await User.findOne({ email: email });
+  console.log(existingUser);
   if (existingUser) {
     const error = new HttpError(
       "User exists already , please login instead",
@@ -31,25 +32,17 @@ const signup = async (req, res, next) => {
   }
   let hashedPassword;
   hashedPassword = await bcrypt.hash(password, 12);
+
   const createdUser = new User({
     email,
     password: hashedPassword,
   });
-
-  let token = jwt.sign(
-    { userId: createdUser.id, email: createdUser.email },
-    "supersecret_dont_share",
-    {
-      expiresIn: "1h",
-    }
-  );
 
   const userDoc = await createdUser.save();
   res.status(201).json({
     message: "user added successfuly",
     userId: userDoc.id,
     email: userDoc.email,
-    token: token,
   });
 };
 

@@ -36,7 +36,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/projets", projetsRoutes);
+app.use("/api/projects", projetsRoutes);
 app.use("/api/users", usersRoutes);
 
 module.exports = app;
